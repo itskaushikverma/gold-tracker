@@ -1,5 +1,5 @@
 import { AnimatePresence } from 'motion/react';
-import { X, Plus, Calendar, Wallet, Scale } from 'lucide-react';
+import { X, Plus, Calendar, Scale, IndianRupee } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { useSelector } from 'react-redux';
 import { usePurchaseMutation } from '../services/api';
@@ -40,7 +40,7 @@ export default function AddEntryModal({ isOpen, onClose }) {
         toast.success(resp?.message);
       }
     } catch (err) {
-      toast.error(err?.data?.message);
+      toast.error(err?.data?.message || err?.message || 'Failed to add entry');
     }
   };
 
@@ -114,7 +114,7 @@ export default function AddEntryModal({ isOpen, onClose }) {
                   rules={{ required: { value: true, message: 'Invested Amount is required' }, min: { value: 1, message: 'Amount should be greater than 0' }, valueAsNumber: true }}
                   label="Invested Amount (Rs)"
                   placeholder="e.g. 5000"
-                  icon={Wallet}
+                  icon={IndianRupee}
                   name={'investedValue'}
                   errors={errors}
                   disabled={isLoading || isSubmitting}

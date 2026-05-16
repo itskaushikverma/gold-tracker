@@ -29,7 +29,7 @@ export default function DetailsForm({ onSuccess }) {
       const resp = await checkEmail(data).unwrap();
       if (resp?.success) onSuccess(data);
     } catch (err) {
-      toast.error(err?.data?.message || 'Something went wrong');
+      toast.error(err?.data?.message || err?.message || 'Something went wrong');
     }
   };
 

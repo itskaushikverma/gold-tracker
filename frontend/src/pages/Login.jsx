@@ -36,7 +36,7 @@ export default function Login() {
         navigate('/dashboard');
       }
     } catch (err) {
-      toast.error(err?.data?.message || 'Incorrect email or password. Please try again.');
+      toast.error(err?.data?.message || err?.message || 'Incorrect email or password. Please try again.');
     }
   };
   return (

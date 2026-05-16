@@ -1,5 +1,5 @@
 import { AnimatePresence } from 'motion/react';
-import { X, Plus, Wallet } from 'lucide-react';
+import { X, Plus, IndianRupee } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { MotionButton, MotionDiv } from './common/MotionWrapper';
 import CustomInput from './common/CustomInput';
@@ -69,7 +69,7 @@ export default function SetCustomGoldPriceModal({ isOpen, onClose, customGoldSel
                   type="number"
                   label="Custom Gold Price (Rs)"
                   placeholder="e.g. 5000"
-                  icon={Wallet}
+                  icon={IndianRupee}
                   name="price"
                   errors={errors}
                   rules={{

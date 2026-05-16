@@ -1,37 +1,61 @@
 import { AnimatePresence } from 'motion/react';
-import { X, CheckSquare, TrendingUp, TrendingDown, Scale } from 'lucide-react';
+import { X, CheckSquare, TrendingUp, TrendingDown, Scale, IndianRupee } from 'lucide-react';
 import { MotionButton, MotionDiv } from './common/MotionWrapper';
 import { useSellMutation } from '../services/api';
 import { useSelector } from 'react-redux';
 import { useToast } from './common/Toast';
 import { formatCurrency } from '../utils/formatCurrency';
 import { cn } from '../lib/utils';
+import CustomInput from './common/CustomInput';
+import { useForm } from 'react-hook-form';
 
-export default function SellEntryModal({ isOpen, onClose, selectedItems, setSelectedItems }) {
+export default function SellEntryModal({ isOpen, setIsSellModalOpen, itemForSale }) {
   const toast = useToast();
   const [sell, { isLoading }] = useSellMutation();
   const user_id = useSelector((state) => state.auth.user_id);
 
-  const totalWeight = selectedItems?.reduce((sum, item) => sum + item?.weight || 0, 0);
-  const totalInvested = selectedItems?.reduce((sum, item) => sum + item?.investedValue || 0, 0);
-  const totalCurrentValue = selectedItems?.reduce((sum, item) => sum + item?.currentValue || 0, 0);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    getValues,
+    formState: { errors, isSubmitting, isValid },
+  } = useForm({
+    defaultValues: {
+      sellingPrice: 0,
+    },
+  });
+
+  const totalWeight = itemForSale?.weight;
+  const totalInvested = itemForSale?.investedValue;
+
+  const watchedSellingPrice = watch('sellingPrice');
+  const sellingPriceNumber = watchedSellingPrice === undefined || watchedSellingPrice === 0 ? 0 : Number(watchedSellingPrice);
+  const totalCurrentValue = sellingPriceNumber != 0 ? sellingPriceNumber : itemForSale?.currentValue;
+
   const profitLoss = totalCurrentValue - totalInvested;
   const isProfitable = profitLoss >= 0;
+
+  const onClose = () => {
+    setIsSellModalOpen(false);
+    reset();
+  };
 
   const onSubmit = async (data) => {
     try {
       const payload = {
-        investment_details: selectedItems,
         user_id,
+        investment_id: itemForSale?._id,
+        sellingPrice: data.sellingPrice,
       };
       const resp = await sell(payload).unwrap();
       if (resp?.success) {
         onClose();
-        setSelectedItems([]);
         toast.success(resp?.message);
       }
     } catch (err) {
-      toast.error(err?.data?.message || 'Selling failed');
+      toast.error(err?.data?.message || err?.message || 'Selling failed');
     }
   };
 
@@ -74,13 +98,24 @@ export default function SellEntryModal({ isOpen, onClose, selectedItems, setSele
                 </MotionButton>
               </div>
 
-              <div className="relative z-10">
-                <p className="mb-6 text-sm text-slate-300">
-                  You are about to sell {selectedItems.length} selected investment
-                  {selectedItems.length > 1 ? 's' : ''}. Here is the summary:
-                </p>
-
+              <form onSubmit={handleSubmit(onSubmit)} className="relative z-10">
                 <div className="mb-8 space-y-4">
+                  <div>
+                    <CustomInput
+                      register={register}
+                      type="number"
+                      rules={{ required: { value: true, message: 'Selling Price Required' }, validate: (v) => Number(v) > 0 || 'Amount should be greater than 0', valueAsNumber: true }}
+                      label="Selling Price"
+                      placeholder="e.g. 5000"
+                      icon={IndianRupee}
+                      name={'sellingPrice'}
+                      errors={errors}
+                      disabled={isLoading || isSubmitting}
+                    />
+                  </div>
+
+                  <p className="text-sm text-slate-300">Here is the summary:</p>
+
                   <div className="flex items-center justify-between rounded-xl border border-slate-800/80 bg-slate-950/50 p-4">
                     <div className="flex items-center gap-3">
                       <Scale className="h-5 w-5 text-amber-500/70" />
@@ -130,13 +165,12 @@ export default function SellEntryModal({ isOpen, onClose, selectedItems, setSele
                     transition={{ type: 'spring', stiffness: 400, damping: 10 }}
                     type="submit"
                     disabled={isLoading}
-                    onClick={onSubmit}
                     className="flex-1 cursor-pointer rounded-xl bg-linear-to-r from-rose-600 to-orange-500 px-4 py-2.5 font-medium text-white shadow-lg shadow-rose-500/20 transition-colors hover:from-rose-500 hover:to-orange-400"
                   >
                     {isLoading ? 'Selling...' : 'Confirm Sell'}
                   </MotionButton>
                 </div>
-              </div>
+              </form>
             </MotionDiv>
           </MotionDiv>
         </>

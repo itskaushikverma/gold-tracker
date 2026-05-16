@@ -38,7 +38,7 @@ export default function PasswordForm({ formData, onBack }) {
         navigate('/dashboard');
       }
     } catch (err) {
-      toast.error(err?.data?.message || 'Something went wrong');
+      toast.error(err?.data?.message || err?.message || 'Something went wrong');
     }
   };
 

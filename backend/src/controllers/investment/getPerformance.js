@@ -1,5 +1,6 @@
 import InvestmentModel from '../../model/investmentModel.js';
 import { getGoldPrice } from '../../utils/getGoldPrice.js';
+import { round } from '../../utils/roundToDecimal.js';
 
 export const getPerformance = async (req, res, next) => {
   try {
@@ -30,19 +31,18 @@ export const getPerformance = async (req, res, next) => {
     }
 
     const currentPrice = goldPrice.data.priceWithGST;
-    const round = (num) => Number(num.toFixed(2));
 
     let cumulativeInvested = 0;
     let cumulativeCurrentValue = 0;
 
     const performance = investments.map((investment) => {
-      cumulativeInvested += investment.investedValue || 0;
+      cumulativeInvested += investment.investedValue;
       cumulativeCurrentValue +=
         customGoldSellingPrice &&
         !isNaN(customGoldSellingPrice) &&
         Number(customGoldSellingPrice) > 0
           ? investment.weight * customGoldSellingPrice
-          : investment.weight * currentPrice || 0;
+          : investment.weight * currentPrice;
 
       return {
         date: investment.date,

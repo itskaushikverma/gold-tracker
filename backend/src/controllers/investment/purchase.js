@@ -11,6 +11,10 @@ export const purchase = async (req, res, next) => {
         .json({ success: false, message: 'Date, weight, amount, and user_id are required' });
     }
 
+    const user = await UserModel.findById(user_id);
+
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
     const investment = await InvestmentModel.create({
       date,
       weight: Number(weight).toFixed(2),
@@ -20,22 +24,6 @@ export const purchase = async (req, res, next) => {
 
     if (!investment)
       return res.status(400).json({ success: false, message: 'Failed to record investment' });
-
-    const user = await UserModel.findById(user_id);
-
-    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
-
-    await user.updateOne(
-      {
-        totalInvestedGoldWeight: (Number(user?.totalInvestedGoldWeight) + Number(weight)).toFixed(
-          2,
-        ),
-        totalInvestedAmount: (Number(user?.totalInvestedAmount) + Number(investedValue)).toFixed(2),
-      },
-      { new: true },
-    );
-
-    await user.save();
 
     return res.status(201).json({ success: true, message: 'Investment recorded successfully' });
   } catch (error) {

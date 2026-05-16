@@ -1,4 +1,4 @@
-import { TrendingUp, TrendingDown, Wallet, Plus, CheckSquare, Pencil, Edit } from 'lucide-react';
+import { TrendingUp, TrendingDown, Plus, CheckSquare, Pencil, Edit, IndianRupee } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useGetDetailsQuery } from '../services/api';
 import { MotionButton, MotionDiv, MotionTr } from '../components/common/MotionWrapper';
@@ -16,7 +16,7 @@ export default function Dashboard() {
   const dispatch = useDispatch();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isSellModalOpen, setIsSellModalOpen] = useState(false);
-  const [selectedItems, setSelectedItems] = useState([]);
+  const [itemForSale, setItemForSale] = useState(null);
   const [customGoldSellingPriceModal, setCustomGoldSellingPriceModal] = useState(false);
 
   const user_id = useSelector((state) => state.auth.user_id);
@@ -59,7 +59,7 @@ export default function Dashboard() {
           </header>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6">
-            <Card title="Total Invested" value={formatCurrency(getDetails?.data?.totalInvestmentAmount || 0)} icon={<Wallet className="h-6 w-6" />} />
+            <Card title="Total Invested" value={formatCurrency(getDetails?.data?.totalInvestmentAmount || 0)} icon={<IndianRupee className="h-6 w-6" />} />
 
             <Card title="Current Value" value={formatCurrency(getDetails?.data?.currentTotalInvestedAmount || 0)} icon={<TrendingUp className="h-6 w-6" />} />
 
@@ -87,18 +87,6 @@ export default function Dashboard() {
                   <Pencil className="h-3.5 w-3.5" />
                   {customGoldSellingPrice && !isNaN(customGoldSellingPrice) && Number(customGoldSellingPrice) > 0 ? formatCurrency(customGoldSellingPrice) : 'Set Custom Price'}
                 </MotionButton>
-                {selectedItems.length > 0 && (
-                  <MotionButton
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    whileTap={{ scale: 0.95, y: 2 }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 10 }}
-                    onClick={() => setIsSellModalOpen(true)}
-                    className="flex cursor-pointer items-center gap-1.5 rounded-full border border-rose-500/30 bg-rose-500/10 px-4 py-1.5 text-xs font-medium text-rose-400 transition-colors duration-300 hover:border-rose-500 hover:bg-rose-500/80 hover:text-white hover:shadow-[0_0_15px_rgba(244,63,94,0.4)]"
-                  >
-                    <CheckSquare className="h-3.5 w-3.5" />
-                    Sell Selected ({selectedItems.length})
-                  </MotionButton>
-                )}
               </div>
             </div>
 
@@ -107,7 +95,6 @@ export default function Dashboard() {
                 <table className="relative w-full border-collapse">
                   <thead className="sticky top-0 z-20 bg-slate-900/95 shadow-sm backdrop-blur-md">
                     <tr className="border-b border-slate-800/60 text-xs font-medium text-slate-400 md:text-sm">
-                      <th className="px-4 py-3 text-left tracking-wider text-nowrap uppercase md:px-6 md:py-4"></th>
                       <th className="px-4 py-3 text-left tracking-wider text-nowrap uppercase md:px-6 md:py-4">Date</th>
                       <th className="px-4 py-3 text-center tracking-wider text-nowrap uppercase md:px-6 md:py-4">Weight</th>
                       <th className="px-4 py-3 text-center tracking-wider text-nowrap uppercase md:px-6 md:py-4">Invested Amount</th>
@@ -119,28 +106,19 @@ export default function Dashboard() {
                   <tbody className="divide-y divide-slate-800/30">
                     {(getDetails?.data?.investments || []).map((item, index) => {
                       const isSell = item?.isSell?.status;
-                      const isSelected = selectedItems.some((i) => i._id === item._id);
-
                       return (
                         <MotionTr
                           initial={{ opacity: 0, y: 5 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.3, delay: index * 0.05 }}
                           key={item._id}
+                          onClick={() => {
+                            if (isSell) return;
+                            setIsSellModalOpen(true);
+                            setItemForSale(item);
+                          }}
                           className={cn('group cursor-default transition-all duration-300', isSell ? 'bg-rose-500/5' : 'hover:bg-slate-800/50')}
                         >
-                          <td className="px-4 py-3 text-nowrap md:px-6 md:py-4">
-                            {!isSell && (
-                              <input
-                                type="checkbox"
-                                className="h-4 w-4 cursor-pointer rounded border-slate-700 bg-slate-800 text-blue-500"
-                                checked={isSelected}
-                                onChange={() => {
-                                  setSelectedItems((prev) => (isSelected ? prev.filter((i) => i._id !== item._id) : [...prev, item]));
-                                }}
-                              />
-                            )}
-                          </td>
                           <td className="px-4 py-3 text-left text-sm font-medium text-nowrap text-slate-300 md:px-6 md:py-4 md:text-base">
                             <div className="flex flex-col">
                               <span>{formatDate(item.date)}</span>
@@ -183,7 +161,7 @@ export default function Dashboard() {
         </MotionDiv>
       </div>
       <AddEntryModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
-      <SellEntryModal isOpen={isSellModalOpen} onClose={() => setIsSellModalOpen(false)} selectedItems={selectedItems} setSelectedItems={setSelectedItems} />
+      <SellEntryModal isOpen={isSellModalOpen} setIsSellModalOpen={setIsSellModalOpen} itemForSale={itemForSale} setItemForSale={setItemForSale} />
       <SetCustomGoldPriceModal
         isOpen={customGoldSellingPriceModal}
         onClose={() => setCustomGoldSellingPriceModal(false)}

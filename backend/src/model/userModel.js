@@ -24,16 +24,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    totalInvestedGoldWeight: {
-      type: Number,
-      required: true,
-      default: 0,
-    },
-    totalInvestedAmount: {
-      type: Number,
-      required: true,
-      default: 0,
-    },
   },
   { timestamps: true },
 );
